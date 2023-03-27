@@ -1,0 +1,59 @@
+{
+    "Rotate.PressureLowM1": {
+        "class": 1
+    },
+    "Rotate.PressureLowM2": {
+        "class": 1
+    },
+    "Rotate.PressureLowSystem": {
+        "class": 1
+    },
+    "Platform.PressureOilLow": {
+        "class": 1
+    },
+    "Platform.PressureOilHigh": {
+        "class": 4
+    },
+    "Platform.PressureNitrogenLow": {
+        "class": 4
+    },
+    "Platform.PressureNitrogenHigh": {
+        "class": 4
+    },
+    "HPU.HighOilLevel": {
+        "class": 4
+    },
+    "HPU.LowOilLevel": {
+        "class": 4
+    },
+    "HPU.AlarmLowOilLevel": {
+        "class": 1
+    },
+    "HPU.HighOilTemp": {
+        "class": 4
+    },
+    "HPU.AlarmHighOilTemp": {
+        "class": 1
+    },
+    "HPA.PistonMaxLimit": {
+        "class": 4
+    },
+    "HPA.PistonMinLimit": {
+        "class": 4
+    },
+    "HPA.AlarmNitroPressure": {
+        "class": 1
+    },
+    "LPA.PistonMaxLimit": {
+        "class": 4
+    },
+    "LPA.PistonMinLimit": {
+        "class": 4
+    },
+    "LPA.AlarmNitroPressure": {
+        "class": 1
+    },
+    "HPU.LowOilTemp": {
+        "class": 4
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "ISO VG68": {
+        "din": "DIN 51524-3 (HVLP)",
+        "tempMax": "Infinity",
+        "tempMin": 35
+    },
+    "ISO VG46": {
+        "din": "DIN 51524-3 (HVLP)",
+        "tempMax": 35,
+        "tempMin": 20
+    },
+    "ISO VG32": {
+        "din": "DIN 51524-3 (HVLP)",
+        "tempMax": 20,
+        "tempMin": -10
+    },
+    "ISO VG22": {
+        "din": "DIN 51524-3 (HVLP)",
+        "tempMax": -10,
+        "tempMin": "-Infinity"
+    }
+}

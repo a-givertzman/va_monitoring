@@ -1,0 +1,357 @@
+import 'dart:async';
+import 'dart:math';
+
+import 'package:va_monitoring/domain/core/entities/ds_data_class.dart';
+import 'package:va_monitoring/domain/core/entities/ds_data_point.dart';
+import 'package:va_monitoring/domain/core/entities/ds_data_type.dart';
+import 'package:va_monitoring/domain/core/entities/ds_status.dart';
+import 'package:va_monitoring/domain/core/error/failure.dart';
+import 'package:va_monitoring/domain/core/log/log.dart';
+import 'package:va_monitoring/infrastructure/api/response.dart';
+import 'package:va_monitoring/infrastructure/stream/ds_client_real.dart';
+import 'package:va_monitoring/infrastructure/stream/stream_mearged.dart';
+
+class DsClientEmulate extends DsClientReal{
+  static const _debug = false;
+  final Map<String, StreamController<DsDataPoint>> _receivers = {};
+  final Map<String, CustomDataGenerator> _generators = {};
+  late StreamTransformer doubleTransformer;
+  ///
+  DsClientEmulate(
+  ) : super(ip: '', port: 0);
+  ///
+  void _handleToBoolStreamData(DsDataPoint data, EventSink sink) {
+    if (data.value == 0) {
+      sink.add(
+        DsDataPoint<bool>(
+          type: DsDataType.bool, 
+          path: '', 
+          name: '', 
+          value: false, 
+          status: DsStatus.ok,
+          timestamp: DateTime.now().toIso8601String(),
+        ),
+      );
+    } else if (data.value == 1) {
+      sink.add(
+        DsDataPoint<bool>(
+          type: DsDataType.bool, 
+          path: '', 
+          name: '', 
+          value: true, 
+          status: DsStatus.ok,
+          timestamp: DateTime.now().toIso8601String(),
+        ),
+      );
+    } else {
+      sink.addError(
+        Failure.unexpected(
+          message: 'Ошибка в методе _handleToBoolStreamData класса $DsClientEmulate:\ninput data must be 0 or 1, but $data given',
+          stackTrace: StackTrace.current,
+        ),
+      );
+    }
+  }  
+  /// Запрашивает значения по их именам
+  // Future<bool> requestNamed(List<String> names) {
+  //   return Future.delayed(
+  //     Duration(
+  //       milliseconds: Random(DateTime.now().millisecond).nextInt(1500) + 500,
+  //     ),
+  //   ).then((value) {
+      
+  //     return true;
+  //   });
+  // }
+  /// Поток, куда прийдут значения запрошенные по именам
+  @override
+  Stream<DsDataPoint<double>> streamRequestedEmulated(String filterByValue, {int delay = 500, double min = 0, double max = 100}) {
+    StreamController<DsDataPoint<double>>? streamController;
+    if (!_receivers.containsKey(filterByValue)) {
+      streamController = StreamController<DsDataPoint<double>>.broadcast();
+      _receivers[filterByValue] = streamController;
+      _generators[filterByValue] = RequestedGenerator(min, delay: delay, min: min, max: max);
+      _generators[filterByValue]!.stream.listen((event) {
+        _onDataDouble(filterByValue, event as double);
+      });
+    } else {
+      final receiver = _receivers[filterByValue];
+      if (receiver != null) {
+        streamController = receiver as StreamController<DsDataPoint<double>>;
+      }
+    }
+    if (streamController != null) {
+      log(_debug, '[$DsClientEmulate.stream()] value: $filterByValue,   streamCtrl: $streamController');
+      return streamController.stream;
+    } else {
+      throw Failure.unexpected(
+        message: '[$DsClientEmulate.stream()] streamController can`t be null', 
+        stackTrace: StackTrace.current,
+      );
+    }
+  }
+  ///
+  /// поток данных отфильтрованный по имени точки данных DsDataPoint<bool>
+  @override
+  Stream<DsDataPoint<bool>> streamBoolEmulated(String filterByValue, {int delay = 100}) {
+    final doubleTransformer = StreamTransformer<DsDataPoint<double>, DsDataPoint<bool>>.fromHandlers(handleData: _handleToBoolStreamData);
+    return streamEmulated(filterByValue, delay: delay, max: 1)
+      .transform<DsDataPoint<bool>>(doubleTransformer);
+  }
+  ///
+  /// поток данных отфильтрованный 
+  /// по имени точки данных DsDataPoint<double>
+  @override
+  Stream<DsDataPoint<double>> streamEmulated(
+    String filterByValue, {
+    int delay = 100, 
+    double min = 0, 
+    double max = 100, 
+    int firstEventDelay = 0,
+  }) {
+    StreamController<DsDataPoint<double>>? streamController;
+    if (!_receivers.containsKey(filterByValue)) {
+      streamController = StreamController<DsDataPoint<double>>.broadcast();
+      _receivers[filterByValue] = streamController;
+      _generators[filterByValue] = RandomGenerator<double>(
+        min, 
+        delay: delay, 
+        min: min, 
+        max: max,
+        firstEventDelay: firstEventDelay,
+      );
+      _generators[filterByValue]!.stream.listen((event) {
+        _onDataDouble(filterByValue, event as double);
+      });
+    } else {
+      final receiver = _receivers[filterByValue];
+      if (receiver != null) {
+        streamController = receiver as StreamController<DsDataPoint<double>>;
+      }
+    }
+    if (streamController != null) {
+      log(_debug, '[$DsClientEmulate.stream()] value: $filterByValue,   streamCtrl: $streamController');
+      return streamController.stream;
+    } else {
+      throw Failure.unexpected(
+        message: '[$DsClientEmulate.stream()] streamController can`t be null', 
+        stackTrace: StackTrace.current,
+      );
+    }
+  }
+  ///
+  /// поток данных отфильтрованный 
+  /// по имени точки данных DsDataPoint<int>
+  @override
+  Stream<DsDataPoint<int>> streamEmulatedInt(
+    String filterByValue, {
+    int delay = 100, 
+    double min = 0, 
+    double max = 100, 
+    int firstEventDelay = 0,
+  }) {
+    StreamController<DsDataPoint<int>>? streamController;
+    if (!_receivers.containsKey(filterByValue)) {
+      streamController = StreamController<DsDataPoint<int>>.broadcast();
+      _receivers[filterByValue] = streamController;
+      _generators[filterByValue] = RandomGenerator<int>(
+        min, 
+        delay: delay, 
+        min: min, 
+        max: max,
+        firstEventDelay: firstEventDelay,
+      );
+      _generators[filterByValue]!.stream.listen((event) {
+        _onDataInt(filterByValue, event as int);
+      });
+    } else {
+      final receiver = _receivers[filterByValue];
+      if (receiver != null) {
+        streamController = receiver as StreamController<DsDataPoint<int>>;
+      }
+    }
+    if (streamController != null) {
+      log(_debug, '[$DsClientEmulate.stream()] value: $filterByValue,   streamCtrl: $streamController');
+      return streamController.stream;
+    } else {
+      throw Failure.unexpected(
+        message: '[$DsClientEmulate.stream()] streamController can`t be null', 
+        stackTrace: StackTrace.current,
+      );
+    }
+  }
+  ///
+  /// поток данных отфильтрованный 
+  /// по массиву имен точек данных DsDataPoint<double>
+  @override
+  StreamMerged<DsDataPoint> streamMergedEmulated(List<String> names) {
+    final List<Stream<DsDataPoint>> streams = [];
+    for (final name in names) {
+      streams.add(
+        streamEmulatedInt(name),
+      );
+    }
+    return StreamMerged(streams);// as Stream<DsDataPoint>;
+  }
+  ///
+  void _onDataDouble(String name, double event) {
+    final point = DsDataPoint(
+      type: DsDataType.real,
+      path: '',
+      name: name, //'AnalogSensors.Winch.EncoderBR1',
+      value: event,
+      status: DsStatus.ok,
+      timestamp: DateTime.now().toIso8601String(),
+    );
+    if (_receivers.keys.contains(point.name)) {
+      // print('decodedEvent: $dataPint');
+      _receivers[name]!.add(point);
+    }
+  }
+  void _onDataInt(String name, int event) {
+    final point = DsDataPoint(
+      type: DsDataType.integer,
+      path: '',
+      name: name, //'AnalogSensors.Winch.EncoderBR1',
+      value: event,
+      status: DsStatus.ok,
+      timestamp: DateTime.now().toIso8601String(),
+    );
+    if (_receivers.keys.contains(point.name)) {
+      // print('decodedEvent: $dataPint');
+      _receivers[name]!.add(point);
+    }
+  }
+
+  @override
+  Response<bool> requestNamedEmulated(List<String> names) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Response<bool> sendEmulated({
+    required DsDataClass dsClass, 
+    required DsDataType type, 
+    required String path, 
+    required String name, 
+    required dynamic value, 
+    required DateTime timestamp,
+  }) {
+    throw UnimplementedError();
+  }
+  ///
+}
+
+
+abstract class CustomDataGenerator<T> {
+  Stream<T> get stream;
+}
+
+///
+class RandomGenerator<T> extends CustomDataGenerator<T> {
+  // static const _debug = true;
+  late StreamController<T> _controller;
+  bool _cancel = false;
+  bool _active = false;
+  double _value = 0;
+  final int _delay;
+  final double _min;
+  final double _max;
+  final int _firstEventDelay;
+  double _increment = 1;
+  ///
+  RandomGenerator(
+    double initValue, {
+    int delay = 50,
+    double min = 0,
+    double max = 100,
+    int firstEventDelay = 0,
+    }
+  ) :
+    _value = initValue,
+    _delay = delay,
+    _min = min,
+    _max = max,
+    _firstEventDelay = firstEventDelay
+  {
+    _controller = StreamController.broadcast(
+      onListen: () {
+        if (!_active) {
+          _run();
+        }      
+      },
+    );
+  }
+  ///
+  @override
+  Stream<T> get stream => _controller.stream;
+  ///
+  void _run() {
+    _active = true;
+    Future(() async {
+      await Future.delayed(Duration(milliseconds: _firstEventDelay));
+      while (!_cancel) {
+        if (_value <= _min) {
+          _increment = 1;
+        }
+        if (_value >= _max) {
+          _increment = -1;
+        }
+        _value = _value + _increment;
+        if (T == int) {
+          _controller.add(_value.toInt() as T);
+        } else if (T == double) {
+          _controller.add(_value as T);
+        }
+        await Future.delayed(Duration(milliseconds: _delay));
+      }
+      _active = false;
+    });
+  }
+  void cancel() {
+    _cancel = true;
+  }
+}
+
+///
+class RequestedGenerator extends CustomDataGenerator<double> {
+  late StreamController<double> _controller;
+  bool _active = false;
+  double _value = 0;
+  final int _delay;
+  final double _min;
+  final double _max;
+  ///
+  RequestedGenerator(
+    double initValue, {
+      int delay = 50,
+      double min = 0,
+      double max = 100,
+    }
+  ) :
+    _value = initValue,
+    _delay = delay,
+    _min = min,
+    _max = max
+  {
+    _controller = StreamController.broadcast(
+      onListen: () {
+        if (!_active) {
+          _run();
+        }      
+      },
+    );
+  }
+  ///
+  @override
+  Stream<double> get stream => _controller.stream;
+  ///
+  void _run() {
+    _active = true;
+    Future.delayed(Duration(milliseconds: _delay))
+      .then((value) {
+        _value = Random(DateTime.now().millisecond).nextDouble() * (_max - _min) + _min;
+        _controller.add(_value);
+      });
+  }
+}
