@@ -63,10 +63,10 @@ class _AppWidgetState extends State<AppWidget> {
       Duration.zero,
       () async {
         await windowManager.ensureInitialized();
-        windowManager.setFullScreen(true);
-        windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+        // windowManager.setFullScreen(true);
+        // windowManager.setTitleBarStyle(TitleBarStyle.hidden);
         windowManager.setBackgroundColor(Colors.transparent);
-        // windowManager.setSize(const Size(1024, 768));
+        windowManager.setSize(const Size(1024, 768));
         // windowManager.center();
         windowManager.focus();
         WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {true;}));

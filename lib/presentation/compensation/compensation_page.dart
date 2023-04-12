@@ -4,7 +4,7 @@ import 'package:va_monitoring/presentation/core/widgets/top_menu_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:hmi_core/hmi_core_app_settings.dart';
 import 'package:hmi_networking/hmi_networking.dart';
-import 'compensation_body.dart';
+import 'widget/compensation_body.dart';
 
 ///
 class CompensationPage extends StatelessWidget {
